@@ -61,7 +61,7 @@ for saving progress. No build tools, no third-party libraries, no external asset
 - [x] Theme, across all four levels — modaks, laddoos, durva, coconuts, puddles,
       pandal festoons, rangoli, a dhol procession, and a calm visarjan finale.
 
-## Demo video link : 
+## Demo video link : https://drive.google.com/file/d/1MlzDHrqPvMyYclvvePJ1OqgTC5E2yf2v/view?usp=sharing
 
 Show the hub first (it makes the "four levels, one story" structure obvious at a
 glance), then a short clip of two or three levels — the rhythm level in particular

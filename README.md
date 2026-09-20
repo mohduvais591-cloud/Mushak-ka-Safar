@@ -42,8 +42,7 @@ API — there are no audio files to host or license. Distinct tones for each pic
 a dhol metronome you can actually hear and play along to in the rhythm level, and a
 bell/confetti moment on every level win.
 
-## live link : mushak-ka-safar.vercel.app
-
+## live link : https://mohduvais591-cloud.github.io/Mushak-ka-Safar/
 ## Tools used
 
 HTML5 Canvas, vanilla JavaScript (ES6), CSS3, Web Audio API, browser `localStorage`

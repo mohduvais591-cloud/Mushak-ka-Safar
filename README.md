@@ -21,16 +21,6 @@ anywhere a browser runs.
 Each level tracks its own best score and star rating (saved in the browser), and the
 hub shows a combined "Festival Score" across all four.
 
-## How to run it locally
-
-Double-click `index.html` — it opens directly in your browser and works fully offline.
-
-To test it like a real server (recommended before deploying):
-```bash
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
-
 ## How to play
 
 - **Desktop:** arrow keys to move/steer, `Space`/`↑` to jump or hit a beat, `↓`/`S` to duck.
@@ -52,21 +42,7 @@ API — there are no audio files to host or license. Distinct tones for each pic
 a dhol metronome you can actually hear and play along to in the rhythm level, and a
 bell/confetti moment on every level win.
 
-## How to deploy it so anyone can play (pick one — all free)
-
-### GitHub Pages (recommended — covers both your live link and source code link)
-1. Push `index.html` (and this `README.md`) to a new GitHub repository.
-2. Repo → **Settings → Pages** → Source: **Deploy from a branch**, branch **main**, folder **/ (root)**. Save.
-3. Your live link: `https://<your-username>.github.io/<repo-name>/`
-4. Open it in an incognito window to confirm anyone can access it with no login —
-   required for cross-campus access.
-
-### Netlify (fastest, drag-and-drop)
-Go to [app.netlify.com/drop](https://app.netlify.com/drop) and drag the folder in —
-you get an instant public URL.
-
-### Vercel
-Import the GitHub repo at [vercel.com/new](https://vercel.com/new) and deploy.
+## live link : 
 
 ## Tools used
 
@@ -86,7 +62,7 @@ for saving progress. No build tools, no third-party libraries, no external asset
 - [x] Theme, across all four levels — modaks, laddoos, durva, coconuts, puddles,
       pandal festoons, rangoli, a dhol procession, and a calm visarjan finale.
 
-## Notes for the demo video / judges
+## Demo video link : 
 
 Show the hub first (it makes the "four levels, one story" structure obvious at a
 glance), then a short clip of two or three levels — the rhythm level in particular

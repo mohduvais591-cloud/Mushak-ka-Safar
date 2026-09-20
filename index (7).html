@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>Mushak Ka Safar — Mushak's Chaturthi Day</title>
+<meta name="description" content="Four festival mini-games following Ganesha's mouse Mushak through one whole Chaturthi day." />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#1a0f08; font-family:'Segoe UI', Verdana, Tahoma, sans-serif; }
+  #game { display:block; position:absolute; top:0; left:0; touch-action:none; }
+
+  #ui { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+  .hidden { display:none !important; }
+
+  .screen {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:auto; padding:20px; overflow:auto;
+    background:radial-gradient(circle at center, rgba(94,26,20,0.93), rgba(26,10,8,0.97));
+  }
+  .screen-content {
+    position:relative; z-index:1; display:flex; flex-direction:column; align-items:center;
+    text-align:center; color:#fff8ec; max-width:520px;
+  }
+  .petals { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .petal {
+    position:absolute; top:-8%; font-size:20px; opacity:0.85;
+    animation-name:fall; animation-timing-function:linear; animation-iteration-count:infinite;
+  }
+  @keyframes fall {
+    0%   { transform:translateY(-10%) rotate(0deg); opacity:0; }
+    8%   { opacity:0.9; }
+    100% { transform:translateY(115vh) rotate(360deg); opacity:0.7; }
+  }
+
+  h1 { font-size:clamp(24px,6vw,44px); color:#ffd166; text-shadow:0 3px 10px rgba(0,0,0,.5); margin-bottom:8px; }
+  .subtitle { font-size:clamp(13px,3vw,16px); color:#ffe9c7; margin-bottom:12px; line-height:1.5; }
+  .howto { font-size:clamp(11px,2.4vw,13px); color:#ffdca6; margin-top:10px; line-height:1.6; }
+
+  button.btn {
+    pointer-events:auto; font-size:clamp(14px,3vw,18px); padding:12px 28px; border-radius:40px;
+    border:none; cursor:pointer; background:linear-gradient(180deg,#ff9f43,#e8590c); color:#fff; font-weight:700;
+    box-shadow:0 6px 0 #a13d00, 0 10px 18px rgba(0,0,0,.4); transition:transform .08s;
+  }
+  button.btn:active { transform:translateY(4px); box-shadow:0 2px 0 #a13d00, 0 4px 10px rgba(0,0,0,.4); }
+  button.btn.secondary { background:linear-gradient(180deg,#6c7a89,#3d4a56); box-shadow:0 6px 0 #232b33, 0 10px 18px rgba(0,0,0,.4); }
+  .resultButtons { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:14px; }
+
+  .totalScore { font-size:15px; color:#ffd166; margin-bottom:16px; font-weight:700; }
+
+  .level-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:min(94vw,420px); }
+  .level-card {
+    pointer-events:auto; cursor:pointer; border-radius:16px; padding:16px 8px;
+    background:linear-gradient(160deg, rgba(255,159,67,.28), rgba(232,89,12,.4));
+    border:1px solid rgba(255,209,102,.45); color:#fff8ec; display:flex; flex-direction:column; align-items:center; gap:5px;
+    transition:transform .1s;
+  }
+  .level-card:active { transform:scale(0.96); }
+  .lc-icon { font-size:30px; }
+  .lc-name { font-size:13px; font-weight:700; line-height:1.3; }
+  .lc-best { font-size:11px; color:#ffd166; }
+
+  #homeBtn {
+    position:absolute; top:14px; left:14px; pointer-events:auto; background:rgba(0,0,0,.35);
+    border:none; color:#fff; border-radius:50%; width:36px; height:36px; font-size:16px; cursor:pointer; z-index:5;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #muteBtn {
+    position:absolute; top:14px; right:14px; pointer-events:auto; background:rgba(0,0,0,.35);
+    border:none; color:#fff; border-radius:50%; width:36px; height:36px; font-size:15px; cursor:pointer; z-index:5;
+  }
+
+  .hud-row {
+    position:absolute; top:14px; left:0; width:100%; display:flex; justify-content:center; gap:10px;
+    padding:0 60px; color:#fff8ec; font-weight:700; font-size:clamp(12px,2.8vw,16px); text-shadow:0 2px 4px rgba(0,0,0,.6);
+  }
+  .hud-row div { background:rgba(0,0,0,.35); padding:6px 12px; border-radius:20px; }
+
+  #progressWrap {
+    position:absolute; top:58px; left:50%; transform:translateX(-50%);
+    width:min(92vw,420px); background:rgba(0,0,0,.32); border-radius:14px; padding:8px 14px;
+    color:#fff8ec; font-size:12px; font-weight:600;
+  }
+  #levelTitleLabel { margin-bottom:5px; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+  .barOuter { width:100%; height:8px; background:rgba(255,255,255,.25); border-radius:6px; overflow:hidden; }
+  .barOuter.small { width:120px; height:6px; display:inline-block; vertical-align:middle; margin-left:6px; }
+  .barFill { height:100%; width:0%; background:linear-gradient(90deg,#ffd166,#e8590c); border-radius:6px; transition:width .15s linear; }
+  .barFill.combo { background:linear-gradient(90deg,#8bd45a,#4c9a2a); }
+  .barFill.combo.blessed { background:linear-gradient(90deg,#ffe27a,#ff9f43); }
+  .comboRow { margin-top:6px; display:flex; align-items:center; font-size:12px; }
+
+  #controls { position:absolute; bottom:18px; left:0; width:100%; display:flex; justify-content:center; gap:12px; pointer-events:auto; }
+  .ctrl-btn {
+    width:58px; height:58px; border-radius:50%; border:2px solid rgba(255,255,255,.5);
+    background:rgba(0,0,0,.4); color:#fff; font-size:22px; display:flex; align-items:center; justify-content:center;
+  }
+
+  .score-line { font-size:clamp(14px,3.2vw,17px); margin:4px 0; }
+  .best { color:#ffd166; }
+  .stars { font-size:24px; letter-spacing:6px; margin:6px 0; }
+  .badges { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px; }
+  .badge { background:rgba(255,209,102,.18); border:1px solid rgba(255,209,102,.5); color:#ffd166; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+
+  @media (max-width:380px){ .hud-row{ padding:0 46px; gap:6px; } .hud-row div{ padding:5px 8px; font-size:11px; } }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="ui">
+  <button id="homeBtn" class="hidden" aria-label="Back to hub">🏠</button>
+  <button id="muteBtn" aria-label="Mute sound">🔊</button>
+
+  <div id="hudRunner" class="hidden hud-row">
+    <div>🍡 <span id="runScore">0</span></div>
+    <div>📍 <span id="runDist">0</span>m</div>
+    <div>🏆 <span id="runBest">0</span></div>
+  </div>
+  <div id="progressWrap" class="hidden">
+    <div id="levelTitleLabel">Modak Dash</div>
+    <div class="barOuter"><div id="progressFill" class="barFill"></div></div>
+    <div class="comboRow">🪔 Blessing <div class="barOuter small"><div id="comboFill" class="barFill combo"></div></div></div>
+  </div>
+
+  <div id="hudMemory" class="hidden hud-row">
+    <div>⏱ <span id="memTime">45</span>s</div>
+    <div>🔄 <span id="memMoves">0</span></div>
+    <div>✅ <span id="memMatches">0</span>/8</div>
+  </div>
+
+  <div id="hudRhythm" class="hidden hud-row">
+    <div>🥁 <span id="rhyScore">0</span></div>
+    <div>🔥 <span id="rhyCombo">0</span></div>
+    <div>🎯 <span id="rhyAcc">0</span>%</div>
+  </div>
+
+  <div id="controls" class="hidden">
+    <div class="ctrl-btn" id="btnLeft">◀</div>
+    <div class="ctrl-btn" id="btnJump">⤒</div>
+    <div class="ctrl-btn" id="btnDuck">⬇</div>
+    <div class="ctrl-btn" id="btnRight">▶</div>
+  </div>
+
+  <div id="hubScreen" class="screen">
+    <div class="petals" id="petalsHub"></div>
+    <div class="screen-content">
+      <h1>🐭 Mushak Ka Safar</h1>
+      <div class="subtitle">
+        Follow Mushak through one whole Ganesh Chaturthi day — four festival
+        challenges, one story, building up to visarjan.
+      </div>
+      <div class="totalScore">🏆 Festival Score: <span id="totalScore">0</span></div>
+      <div class="level-grid">
+        <button class="level-card" data-level="l1">
+          <div class="lc-icon">🏃</div>
+          <div class="lc-name">Morning<br />Modak Dash</div>
+          <div class="lc-best">Best: <span id="l1Best">0</span> <span id="l1Stars"></span></div>
+        </button>
+        <button class="level-card" data-level="l2">
+          <div class="lc-icon">🧠</div>
+          <div class="lc-name">Midday<br />Rangoli Memory</div>
+          <div class="lc-best">Best: <span id="l2Best">0</span> <span id="l2Stars"></span></div>
+        </button>
+        <button class="level-card" data-level="l3">
+          <div class="lc-icon">🥁</div>
+          <div class="lc-name">Evening<br />Dhol Rhythm</div>
+          <div class="lc-best">Best: <span id="l3Best">0</span> <span id="l3Stars"></span></div>
+        </button>
+        <button class="level-card" data-level="l4">
+          <div class="lc-icon">🚣</div>
+          <div class="lc-name">Night<br />Visarjan Journey</div>
+          <div class="lc-best">Best: <span id="l4Best">0</span> <span id="l4Stars"></span></div>
+        </button>
+      </div>
+      <div class="howto">
+        Desktop: arrow keys / Space / S &nbsp;·&nbsp; Mobile: swipe or the on-screen buttons<br />
+        Tap 🏠 anytime to return here — every level can be replayed for a better score.
+      </div>
+    </div>
+  </div>
+
+  <div id="resultScreen" class="screen hidden">
+    <div class="petals" id="petalsResult"></div>
+    <div class="screen-content">
+      <h1 id="resultTitle">Level Complete!</h1>
+      <div class="subtitle" id="resultMessage"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="score-line">Score: <b id="resultScore">0</b></div>
+      <div class="score-line best">Best: <span id="resultBest">0</span></div>
+      <div class="badges" id="resultExtra"></div>
+      <div class="resultButtons">
+        <button class="btn" id="resultRetryBtn">Retry</button>
+        <button class="btn" id="resultNextBtn">Next Level</button>
+        <button class="btn secondary" id="resultHubBtn">Back to Hub</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================
+  // CANVAS SETUP
+  // ============================================================
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  let lanesX = [];
+
+  function computeLanes() { lanesX = [W * 0.24, W * 0.5, W * 0.76]; }
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    computeLanes();
+    if (mem) layoutMemory();
+  }
+  window.addEventListener('resize', resize);
+
+  // ============================================================
+  // SCENES
+  // ============================================================
+  const SCENE = { HUB: 'HUB', L1: 'L1', L2: 'L2', L3: 'L3', L4: 'L4' };
+  let scene = SCENE.HUB;
+  let phase = 'PLAYING'; // PLAYING | WIN | FAIL (meaning depends on active scene)
+  let globalElapsed = 0;
+
+  const CFG = {
+    JUMP_FORCE: 780,
+    GRAVITY: 2200,
+    PLAYER_Y_RATIO: 0.78,
+    COMBO_MAX: 12,
+    BLESSING_DURATION: 4,
+  };
+
+  // ============================================================
+  // PROGRESS / SAVE DATA
+  // ============================================================
+  let progressData = {};
+  try { progressData = JSON.parse(localStorage.getItem('mushakSafarProgress') || '{}'); }
+  catch (e) { progressData = {}; }
+
+  function saveLevelResult(id, score, stars) {
+    if (!progressData[id]) progressData[id] = { best: 0, stars: 0 };
+    if (score > progressData[id].best) progressData[id].best = Math.floor(score);
+    if (stars > progressData[id].stars) progressData[id].stars = stars;
+    try { localStorage.setItem('mushakSafarProgress', JSON.stringify(progressData)); } catch (e) {}
+  }
+
+  function refreshHub() {
+    let total = 0;
+    ['l1', 'l2', 'l3', 'l4'].forEach((id) => {
+      const d = progressData[id] || { best: 0, stars: 0 };
+      total += d.best;
+      document.getElementById(id + 'Best').textContent = d.best;
+      document.getElementById(id + 'Stars').textContent = d.stars > 0 ? '⭐'.repeat(d.stars) : '';
+    });
+    document.getElementById('totalScore').textContent = total;
+  }
+
+  // ============================================================
+  // AUDIO
+  // ============================================================
+  let actx = null;
+  let muted = false;
+  function ensureAudio() {
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  }
+  function tone(freq, dur, type, vol) {
+    if (muted || !actx) return;
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(vol || 0.15, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur);
+  }
+  function sfxCollect() { tone(880, 0.12, 'triangle', 0.15); tone(1200, 0.1, 'triangle', 0.08); }
+  function sfxHit() { tone(120, 0.25, 'sawtooth', 0.2); }
+  function sfxJump() { tone(500, 0.08, 'square', 0.06); }
+  function sfxDuck() { tone(200, 0.08, 'square', 0.06); }
+  function sfxShield() { tone(300, 0.15, 'square', 0.12); }
+  function sfxBlessing() { [660, 880, 990].forEach((f, i) => setTimeout(() => tone(f, 0.25, 'sine', 0.15), i * 90)); }
+  function sfxWin() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.3, 'triangle', 0.15), i * 140)); }
+  function sfxBell() { tone(1046, 0.6, 'sine', 0.12); tone(1568, 0.5, 'sine', 0.06); }
+  function sfxLaddoo() { tone(520, 0.14, 'square', 0.14); tone(660, 0.1, 'square', 0.08); }
+  function sfxMarigold() { tone(1046, 0.14, 'sine', 0.14); tone(1318, 0.12, 'sine', 0.08); }
+  function sfxDurva() { tone(740, 0.1, 'triangle', 0.12); }
+  function sfxDholBeat() { tone(90, 0.12, 'sine', 0.12); tone(180, 0.05, 'triangle', 0.05); }
+  function sfxCardFlip() { tone(700, 0.06, 'triangle', 0.08); }
+  function sfxMismatch() { tone(220, 0.15, 'sawtooth', 0.1); }
+
+  // Soft ambient drone that plays while browsing the hub, for atmosphere
+  let ambientOsc = null, ambientGain = null;
+  function startAmbience() {
+    ensureAudio();
+    if (!actx || ambientOsc || muted) return;
+    ambientGain = actx.createGain();
+    ambientGain.gain.setValueAtTime(0, actx.currentTime);
+    ambientGain.gain.linearRampToValueAtTime(0.035, actx.currentTime + 1.2);
+    const o1 = actx.createOscillator(); o1.type = 'sine'; o1.frequency.setValueAtTime(196, actx.currentTime);
+    const o2 = actx.createOscillator(); o2.type = 'sine'; o2.frequency.setValueAtTime(294, actx.currentTime);
+    o1.connect(ambientGain); o2.connect(ambientGain); ambientGain.connect(actx.destination);
+    o1.start(); o2.start();
+    o1._partner = o2;
+    ambientOsc = o1;
+  }
+  function stopAmbience() {
+    if (!ambientOsc || !actx) { ambientOsc = null; ambientGain = null; return; }
+    const now = actx.currentTime;
+    try {
+      ambientGain.gain.linearRampToValueAtTime(0, now + 0.4);
+      ambientOsc.stop(now + 0.5);
+      if (ambientOsc._partner) ambientOsc._partner.stop(now + 0.5);
+    } catch (e) {}
+    ambientOsc = null; ambientGain = null;
+  }
+
+  document.getElementById('muteBtn').addEventListener('click', () => {
+    muted = !muted;
+    document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+    if (muted) { if (ambientGain) ambientGain.gain.setValueAtTime(0, actx.currentTime); }
+    else if (ambientGain && actx) ambientGain.gain.linearRampToValueAtTime(0.035, actx.currentTime + 0.3);
+    else if (scene === SCENE.HUB) startAmbience();
+  });
+
+  // ============================================================
+  // SHARED FX (particles, screen shake) — used by runner + rhythm
+  // ============================================================
+  let particles = [];
+  let shakeTime = 0;
+  function spawnBurst(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+      particles.push({ x, y, vx: (Math.random() - 0.5) * 260, vy: -Math.random() * 260, life: 0.5 + Math.random() * 0.3, color });
+    }
+  }
+  function updateParticlesGlobal(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt; p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+  function drawParticles() {
+    particles.forEach((p) => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function triggerShake(t) { shakeTime = Math.max(shakeTime, t); }
+
+  function lerpColor(a, b, t) {
+    const ah = a.match(/\w\w/g).map((x) => parseInt(x, 16));
+    const bh = b.match(/\w\w/g).map((x) => parseInt(x, 16));
+    const r = ah.map((c, i) => Math.round(c + (bh[i] - c) * t));
+    return 'rgb(' + r[0] + ',' + r[1] + ',' + r[2] + ')';
+  }
+
+  // ============================================================
+  // INPUT DISPATCH — same physical controls, meaning depends on scene
+  // ============================================================
+  function onLeftPress() {
+    ensureAudio();
+    if (scene === SCENE.L1 || scene === SCENE.L4) laneLeft();
+    else if (scene === SCENE.L3) hitLane(0);
+  }
+  function onRightPress() {
+    ensureAudio();
+    if (scene === SCENE.L1 || scene === SCENE.L4) laneRight();
+    else if (scene === SCENE.L3) hitLane(2);
+  }
+  function onJumpPress() {
+    ensureAudio();
+    if (scene === SCENE.L1 || scene === SCENE.L4) doJump();
+    else if (scene === SCENE.L3) hitLane(1);
+  }
+  function onDuckPress() {
+    ensureAudio();
+    if (scene === SCENE.L1 || scene === SCENE.L4) doDuck();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); onLeftPress(); }
+    else if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); onRightPress(); }
+    else if (e.code === 'ArrowUp' || e.code === 'Space' || e.code === 'KeyW') { e.preventDefault(); onJumpPress(); }
+    else if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); onDuckPress(); }
+    else if (e.code === 'Escape') { if (scene !== SCENE.HUB) goToHub(); }
+  });
+
+  document.getElementById('btnLeft').addEventListener('click', onLeftPress);
+  document.getElementById('btnRight').addEventListener('click', onRightPress);
+  document.getElementById('btnJump').addEventListener('click', onJumpPress);
+  document.getElementById('btnDuck').addEventListener('click', onDuckPress);
+
+  let touchStartX = 0, touchStartY = 0, touchActive = false;
+  canvas.addEventListener('touchstart', (e) => {
+    ensureAudio();
+    const t = e.changedTouches[0];
+    touchStartX = t.clientX; touchStartY = t.clientY; touchActive = true;
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (!touchActive) return;
+    touchActive = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX, dy = t.clientY - touchStartY;
+    if (scene === SCENE.L2) {
+      if (Math.abs(dx) < 15 && Math.abs(dy) < 15) handleMemoryTap(t.clientX, t.clientY);
+      return;
+    }
+    if (scene === SCENE.L1 || scene === SCENE.L3 || scene === SCENE.L4) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (Math.abs(dx) > 30) { dx > 0 ? onRightPress() : onLeftPress(); }
+      } else {
+        if (dy < -30) onJumpPress();
+        else if (dy > 30) onDuckPress();
+      }
+    }
+  }, { passive: true });
+
+  canvas.addEventListener('click', (e) => {
+    if (scene === SCENE.L2) { ensureAudio(); handleMemoryTap(e.clientX, e.clientY); }
+  });
+
+  // ============================================================
+  // HUB
+  // ============================================================
+  document.querySelectorAll('.level-card').forEach((btn) => {
+    btn.addEventListener('click', () => { ensureAudio(); startLevel(btn.dataset.level); });
+  });
+  document.getElementById('homeBtn').addEventListener('click', goToHub);
+
+  function startLevel(id) {
+    if (id === 'l1' || id === 'l4') startRunner(id);
+    else if (id === 'l2') startMemory();
+    else if (id === 'l3') startRhythm();
+  }
+
+  function showLevelChrome(id) {
+    document.getElementById('hubScreen').classList.add('hidden');
+    document.getElementById('resultScreen').classList.add('hidden');
+    document.getElementById('homeBtn').classList.remove('hidden');
+    document.getElementById('hudRunner').classList.add('hidden');
+    document.getElementById('hudMemory').classList.add('hidden');
+    document.getElementById('hudRhythm').classList.add('hidden');
+    document.getElementById('progressWrap').classList.add('hidden');
+    document.getElementById('controls').classList.add('hidden');
+    document.getElementById('btnDuck').classList.remove('hidden');
+
+    if (id === 'l1' || id === 'l4') {
+      document.getElementById('hudRunner').classList.remove('hidden');
+      document.getElementById('progressWrap').classList.remove('hidden');
+      document.getElementById('controls').classList.remove('hidden');
+    } else if (id === 'l2') {
+      document.getElementById('hudMemory').classList.remove('hidden');
+    } else if (id === 'l3') {
+      document.getElementById('hudRhythm').classList.remove('hidden');
+      document.getElementById('controls').classList.remove('hidden');
+      document.getElementById('btnDuck').classList.add('hidden');
+    }
+  }
+
+  function goToHub() {
+    scene = SCENE.HUB;
+    document.getElementById('resultScreen').classList.add('hidden');
+    document.getElementById('homeBtn').classList.add('hidden');
+    document.getElementById('hudRunner').classList.add('hidden');
+    document.getElementById('hudMemory').classList.add('hidden');
+    document.getElementById('hudRhythm').classList.add('hidden');
+    document.getElementById('progressWrap').classList.add('hidden');
+    document.getElementById('controls').classList.add('hidden');
+    refreshHub();
+    document.getElementById('hubScreen').classList.remove('hidden');
+  }
+
+  function showLevelResult(kind, opts) {
+    document.getElementById('hudRunner').classList.add('hidden');
+    document.getElementById('hudMemory').classList.add('hidden');
+    document.getElementById('hudRhythm').classList.add('hidden');
+    document.getElementById('progressWrap').classList.add('hidden');
+    document.getElementById('controls').classList.add('hidden');
+    document.getElementById('homeBtn').classList.add('hidden');
+
+    const isWin = kind === 'WIN';
+    document.getElementById('resultTitle').textContent = opts.title;
+    document.getElementById('resultTitle').style.color = isWin ? '#8ee6a1' : '#ff6b6b';
+    document.getElementById('resultMessage').textContent = opts.message;
+    document.getElementById('resultStars').textContent = isWin ? ('⭐'.repeat(opts.stars) + '☆'.repeat(3 - opts.stars)) : '—';
+    document.getElementById('resultScore').textContent = Math.floor(opts.score);
+    document.getElementById('resultBest').textContent = progressData[opts.levelId] ? progressData[opts.levelId].best : Math.floor(opts.score);
+
+    let extraHtml = '';
+    if (opts.levelId === 'l4' && isWin) {
+      const allPlayed = ['l1', 'l2', 'l3'].every((id) => progressData[id] && progressData[id].best > 0);
+      if (allPlayed) extraHtml = '<span class="badge">🎉 Completed Mushak\'s whole Chaturthi day!</span>';
+    }
+    document.getElementById('resultExtra').innerHTML = extraHtml;
+
+    const nextBtn = document.getElementById('resultNextBtn');
+    if (opts.nextLevelId) {
+      nextBtn.classList.remove('hidden');
+      nextBtn.onclick = () => startLevel(opts.nextLevelId);
+    } else {
+      nextBtn.classList.add('hidden');
+    }
+    document.getElementById('resultRetryBtn').onclick = () => startLevel(opts.levelId);
+    document.getElementById('resultHubBtn').onclick = goToHub;
+
+    document.getElementById('resultScreen').classList.remove('hidden');
+  }
+
+  // ============================================================
+  // RUNNER ENGINE (Level 1: Modak Dash · Level 4: Visarjan Journey)
+  // ============================================================
+  const RUNNER_THEMES = {
+    l1: {
+      id: 'l1', title: 'Modak Dash', palette: 'street',
+      winDistance: 500, baseSpeed: 230, maxSpeed: 480, spawnStart: 1000, spawnMin: 480,
+      nextLevelId: 'l2',
+      winMsg: 'The modaks are ready for the pandal!',
+      failMsg: 'Mushak stumbled on the way — try again!',
+    },
+    l4: {
+      id: 'l4', title: 'Visarjan Journey', palette: 'river',
+      winDistance: 450, baseSpeed: 210, maxSpeed: 420, spawnStart: 950, spawnMin: 460,
+      nextLevelId: null,
+      winMsg: 'Ganpati Bappa Morya! The murti reaches the water safely.',
+      failMsg: 'The boat wobbled before reaching the river — try again!',
+    },
+  };
+
+  let runnerTheme = null;
+  let player, obstacles, collectibles;
+  let distance, score, speed, spawnTimer, spawnInterval;
+  let shieldActive, multiplier, multiplierTime, invuln;
+  let comboCount, blessingActive, blessingTimer;
+
+  function comboMul() { return multiplier * (blessingActive ? 2 : 1); }
+
+  function startRunner(id) {
+    ensureAudio();
+    runnerTheme = RUNNER_THEMES[id];
+    player = { lane: 1, x: lanesX[1], jumpY: 0, jumpVel: 0, isJumping: false, isDucking: false, duckTimer: 0 };
+    obstacles = []; collectibles = []; particles = [];
+    distance = 0; score = 0; speed = runnerTheme.baseSpeed;
+    spawnTimer = 0; spawnInterval = runnerTheme.spawnStart;
+    shieldActive = false; multiplier = 1; multiplierTime = 0; invuln = 0;
+    comboCount = 0; blessingActive = false; blessingTimer = 0; shakeTime = 0;
+
+    scene = id === 'l1' ? SCENE.L1 : SCENE.L4;
+    phase = 'PLAYING';
+    showLevelChrome(id);
+    document.getElementById('levelTitleLabel').textContent = runnerTheme.title;
+    updateRunnerHUD();
+  }
+
+  function laneLeft() { if (phase === 'PLAYING') player.lane = Math.max(0, player.lane - 1); }
+  function laneRight() { if (phase === 'PLAYING') player.lane = Math.min(2, player.lane + 1); }
+  function doJump() {
+    if (phase !== 'PLAYING') return;
+    if (!player.isJumping) { player.isJumping = true; player.jumpVel = -CFG.JUMP_FORCE; sfxJump(); }
+  }
+  function doDuck() {
+    if (phase !== 'PLAYING') return;
+    if (!player.isDucking) { player.isDucking = true; player.duckTimer = 0.5; sfxDuck(); }
+  }
+
+  function triggerBlessing() {
+    blessingActive = true;
+    blessingTimer = CFG.BLESSING_DURATION;
+    comboCount = 0;
+    sfxBlessing();
+  }
+
+  function spawnEntity() {
+    const lane = Math.floor(Math.random() * 3);
+    let availableObstacles = ['coconut', 'puddle'];
+    if (distance > 120) availableObstacles.push('festoon');
+    if (Math.random() < 0.45) {
+      const type = availableObstacles[Math.floor(Math.random() * availableObstacles.length)];
+      obstacles.push({ lane, y: -60, type });
+    } else {
+      const pool = ['modak', 'modak', 'modak', 'laddoo', 'marigold', 'durva'];
+      const type = pool[Math.floor(Math.random() * pool.length)];
+      collectibles.push({ lane, y: -60, type });
+    }
+  }
+
+  function updateRunner(dt) {
+    const progress = Math.min(1, distance / runnerTheme.winDistance);
+    speed = runnerTheme.baseSpeed + (runnerTheme.maxSpeed - runnerTheme.baseSpeed) * progress;
+    spawnInterval = runnerTheme.spawnStart - (runnerTheme.spawnStart - runnerTheme.spawnMin) * progress;
+
+    distance += (speed * dt) / 12;
+
+    const targetX = lanesX[player.lane];
+    player.x += (targetX - player.x) * Math.min(1, dt * 12);
+
+    if (player.isJumping) {
+      player.jumpY += player.jumpVel * dt;
+      player.jumpVel += CFG.GRAVITY * dt;
+      if (player.jumpY >= 0) { player.jumpY = 0; player.jumpVel = 0; player.isJumping = false; }
+    }
+    if (player.isDucking) {
+      player.duckTimer -= dt;
+      if (player.duckTimer <= 0) { player.isDucking = false; player.duckTimer = 0; }
+    }
+
+    if (invuln > 0) invuln -= dt;
+    if (multiplierTime > 0) { multiplierTime -= dt; if (multiplierTime <= 0) multiplier = 1; }
+    if (blessingActive) { blessingTimer -= dt; if (blessingTimer <= 0) { blessingActive = false; blessingTimer = 0; } }
+    if (shakeTime > 0) shakeTime = Math.max(0, shakeTime - dt * 2);
+
+    spawnTimer += dt * 1000;
+    if (spawnTimer >= spawnInterval) { spawnTimer = 0; spawnEntity(); }
+
+    const playerHitY = H * CFG.PLAYER_Y_RATIO;
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
+      o.y += speed * dt;
+      if (o.y > H + 80) { obstacles.splice(i, 1); continue; }
+      if (o.lane === player.lane && Math.abs(o.y - playerHitY) < 34 && invuln <= 0) {
+        const passesByJump = (o.type === 'puddle' && player.isJumping && player.jumpY < -18);
+        const passesByDuck = (o.type === 'festoon' && player.isDucking);
+        if (!passesByJump && !passesByDuck) {
+          if (blessingActive) {
+            obstacles.splice(i, 1);
+            triggerShake(0.15);
+            spawnBurst(lanesX[o.lane], playerHitY, '#ffe27a');
+          } else if (shieldActive) {
+            shieldActive = false; invuln = 0.6; comboCount = 0;
+            sfxShield(); triggerShake(0.3);
+            obstacles.splice(i, 1);
+            spawnBurst(lanesX[o.lane], playerHitY, '#9be564');
+          } else {
+            comboCount = 0;
+            finishRunner('FAIL');
+            return;
+          }
+        }
+      }
+    }
+
+    for (let i = collectibles.length - 1; i >= 0; i--) {
+      const c = collectibles[i];
+      c.y += speed * dt;
+      if (c.y > H + 80) { collectibles.splice(i, 1); continue; }
+      if (c.lane === player.lane && Math.abs(c.y - playerHitY) < 36) {
+        collectibles.splice(i, 1);
+        if (c.type === 'modak') {
+          score += 10 * comboMul();
+          comboCount++;
+          if (comboCount >= CFG.COMBO_MAX) triggerBlessing();
+          sfxCollect(); spawnBurst(lanesX[c.lane], playerHitY, '#ffd166');
+        } else if (c.type === 'laddoo') {
+          shieldActive = true; sfxCollect(); spawnBurst(lanesX[c.lane], playerHitY, '#ff9f43');
+        } else if (c.type === 'marigold') {
+          multiplier = 2; multiplierTime = 5; sfxCollect(); spawnBurst(lanesX[c.lane], playerHitY, '#ff7b00');
+        } else if (c.type === 'durva') {
+          comboCount = Math.min(CFG.COMBO_MAX, comboCount + 3);
+          if (comboCount >= CFG.COMBO_MAX) triggerBlessing();
+          sfxCollect(); spawnBurst(lanesX[c.lane], playerHitY, '#8bd45a');
+        }
+      }
+    }
+
+    if (distance >= runnerTheme.winDistance) { finishRunner('WIN'); return; }
+    updateRunnerHUD();
+  }
+
+  function finishRunner(kind) {
+    phase = kind;
+    if (kind === 'FAIL') sfxHit(); else { score += 100; sfxWin(); }
+    const winThreshold = runnerTheme.id === 'l1' ? 350 : 300;
+    const stars = kind === 'WIN' ? (score >= winThreshold ? 3 : score >= 200 ? 2 : 1) : 0;
+    saveLevelResult(runnerTheme.id, score, stars);
+    showLevelResult(kind, {
+      levelId: runnerTheme.id,
+      title: kind === 'WIN' ? runnerTheme.title + ' Complete!' : 'Not quite!',
+      message: kind === 'WIN' ? runnerTheme.winMsg : runnerTheme.failMsg,
+      score, stars,
+      nextLevelId: kind === 'WIN' ? runnerTheme.nextLevelId : null,
+    });
+  }
+
+  function updateRunnerHUD() {
+    document.getElementById('runScore').textContent = Math.floor(score);
+    document.getElementById('runDist').textContent = Math.floor(distance);
+    document.getElementById('runBest').textContent = progressData[runnerTheme.id] ? progressData[runnerTheme.id].best : 0;
+    document.getElementById('progressFill').style.width = Math.min(100, (distance / runnerTheme.winDistance) * 100) + '%';
+    const comboFill = document.getElementById('comboFill');
+    comboFill.style.width = Math.min(100, (comboCount / CFG.COMBO_MAX) * 100) + '%';
+    comboFill.classList.toggle('blessed', blessingActive);
+  }
+
+  function drawRunnerBackground() {
+    const progress = Math.min(1, distance / runnerTheme.winDistance);
+    if (runnerTheme.palette === 'river') {
+      const sky1 = lerpColor('ffb366', '5b3d6b', progress);
+      const sky2 = lerpColor('ffe3b0', '2a1830', progress);
+      const g = ctx.createLinearGradient(0, 0, 0, H * 0.68);
+      g.addColorStop(0, sky1); g.addColorStop(1, sky2);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.7);
+      ctx.fillStyle = '#f4f1e0';
+      ctx.beginPath(); ctx.arc(W * 0.8, H * 0.16, 24, 0, Math.PI * 2); ctx.fill();
+      const wg = ctx.createLinearGradient(0, H * 0.68, 0, H);
+      wg.addColorStop(0, '#1c4966'); wg.addColorStop(1, '#0b2233');
+      ctx.fillStyle = wg; ctx.fillRect(0, H * 0.68, W, H * 0.32);
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        const yy = H * 0.73 + i * 14 + Math.sin(globalElapsed * 2 + i) * 3;
+        ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke();
+      }
+      ctx.fillStyle = '#0e3a52'; ctx.fillRect(0, H * 0.68, W, 6);
+    } else {
+      const sky1 = lerpColor('87ceeb', 'ff9d5c', progress);
+      const sky2 = lerpColor('ffe9b0', '7a2d5e', progress);
+      const g = ctx.createLinearGradient(0, 0, 0, H * 0.72);
+      g.addColorStop(0, sky1); g.addColorStop(1, sky2);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.72);
+      ctx.beginPath(); ctx.fillStyle = lerpColor('fff4c2', 'ffd27a', progress);
+      ctx.arc(W * 0.8, H * 0.18 + progress * 30, 34, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = lerpColor('d99b5f', '5a3a2a', progress);
+      ctx.fillRect(0, H * 0.7, W, H * 0.3);
+      ctx.fillStyle = 'rgba(255,209,102,0.5)';
+      for (let i = 0; i < 6; i++) {
+        const rx = ((i / 6) * W + globalElapsed * 20) % W;
+        ctx.beginPath(); ctx.arc(rx, H * 0.94, 6, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = '#e8590c'; ctx.fillRect(0, H * 0.7, W, 6);
+    }
+  }
+
+  function drawLanes() {
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 2; ctx.setLineDash([14, 14]);
+    const dividers = [(lanesX[0] + lanesX[1]) / 2, (lanesX[1] + lanesX[2]) / 2];
+    dividers.forEach((x) => { ctx.beginPath(); ctx.moveTo(x, H * 0.72); ctx.lineTo(x, H); ctx.stroke(); });
+    ctx.setLineDash([]);
+  }
+
+  function drawObstacle(o) {
+    const x = lanesX[o.lane];
+    const river = runnerTheme.palette === 'river';
+    if (o.type === 'coconut') {
+      if (river) {
+        ctx.fillStyle = '#6b4423';
+        ctx.beginPath(); ctx.ellipse(x, o.y, 26, 10, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3e2612'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x - 16, o.y); ctx.lineTo(x + 16, o.y); ctx.stroke();
+      } else {
+        ctx.fillStyle = '#6b4423';
+        ctx.beginPath(); ctx.arc(x, o.y, 22, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3e2612'; ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath(); ctx.moveTo(x - 14, o.y - 10 + i * 10); ctx.lineTo(x + 14, o.y - 10 + i * 10); ctx.stroke();
+        }
+      }
+    } else if (o.type === 'puddle') {
+      if (river) {
+        ctx.strokeStyle = 'rgba(180,220,255,0.7)'; ctx.lineWidth = 2;
+        for (let r = 6; r <= 22; r += 6) {
+          ctx.beginPath(); ctx.arc(x, o.y, r + Math.sin(globalElapsed * 3) * 2, 0, Math.PI * 2); ctx.stroke();
+        }
+      } else {
+        ctx.fillStyle = 'rgba(90,160,220,0.75)';
+        ctx.beginPath(); ctx.ellipse(x, o.y, 34, 12, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(x, o.y, 20, 7, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+    } else if (o.type === 'festoon') {
+      ctx.strokeStyle = '#7a4a26'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(x - 30, o.y - 20); ctx.lineTo(x + 30, o.y - 20); ctx.stroke();
+      const flagColors = ['#ff6b6b', '#ffd166', '#06d6a0'];
+      for (let i = -1; i <= 1; i++) {
+        ctx.fillStyle = flagColors[i + 1];
+        ctx.beginPath();
+        ctx.moveTo(x + i * 20 - 8, o.y - 20); ctx.lineTo(x + i * 20 + 8, o.y - 20); ctx.lineTo(x + i * 20, o.y - 4);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+  }
+
+  function drawCollectible(c) {
+    const x = lanesX[c.lane];
+    const bob = Math.sin(globalElapsed * 6 + c.y * 0.05) * 3;
+    if (c.type === 'modak') {
+      ctx.fillStyle = '#fff3d6';
+      ctx.beginPath();
+      ctx.moveTo(x, c.y - 18 + bob);
+      ctx.quadraticCurveTo(x + 16, c.y - 2 + bob, x, c.y + 16 + bob);
+      ctx.quadraticCurveTo(x - 16, c.y - 2 + bob, x, c.y - 18 + bob);
+      ctx.fill();
+      ctx.strokeStyle = '#e8b23d'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, c.y - 18 + bob); ctx.lineTo(x, c.y + 16 + bob); ctx.stroke();
+    } else if (c.type === 'laddoo') {
+      ctx.fillStyle = '#ff9f43';
+      ctx.beginPath(); ctx.arc(x, c.y + bob, 17, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        ctx.arc(x + (Math.random() - 0.5) * 20, c.y + bob + (Math.random() - 0.5) * 20, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (c.type === 'marigold') {
+      ctx.fillStyle = '#ff7b00';
+      for (let i = 0; i < 6; i++) {
+        const ang = i * (Math.PI / 3);
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(ang) * 12, c.y + bob + Math.sin(ang) * 12, 9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#ffd166';
+      ctx.beginPath(); ctx.arc(x, c.y + bob, 8, 0, Math.PI * 2); ctx.fill();
+    } else if (c.type === 'durva') {
+      ctx.strokeStyle = '#4c9a2a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + i * 6, c.y + 14 + bob);
+        ctx.quadraticCurveTo(x + i * 10, c.y - 6 + bob, x + i * 4, c.y - 16 + bob);
+        ctx.stroke();
+      }
+    }
+  }
+
+  function drawPlayer() {
+    const x = player.x;
+    const squash = player.isDucking ? 0.55 : 1;
+    const y = H * CFG.PLAYER_Y_RATIO + player.jumpY + (1 - squash) * 8;
+    ctx.save();
+    if (invuln > 0 && Math.floor(globalElapsed * 20) % 2 === 0) ctx.globalAlpha = 0.4;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath(); ctx.ellipse(x, H * CFG.PLAYER_Y_RATIO + 18, 24, 7, 0, 0, Math.PI * 2); ctx.fill();
+
+    if (runnerTheme.palette === 'river') {
+      ctx.fillStyle = '#7a4a26';
+      ctx.beginPath();
+      ctx.moveTo(x - 28, y + 6);
+      ctx.quadraticCurveTo(x, y + 22 * squash, x + 28, y + 6);
+      ctx.quadraticCurveTo(x, y - 2, x - 28, y + 6);
+      ctx.fill();
+      ctx.strokeStyle = '#4d2f18'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x, y - 26); ctx.stroke();
+      ctx.fillStyle = '#e8590c';
+      ctx.beginPath(); ctx.moveTo(x, y - 26); ctx.lineTo(x + 14, y - 20); ctx.lineTo(x, y - 14); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#8d6748';
+      ctx.beginPath(); ctx.ellipse(x - 6, y - 2, 10, 8 * squash, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x - 14, y - 10 * squash, 5, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.fillStyle = '#8d6748';
+      ctx.beginPath(); ctx.ellipse(x, y, 20, 16 * squash, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x - 14, y - 18 * squash, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 2, y - 22 * squash, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e8590c';
+      ctx.beginPath(); ctx.ellipse(x, y - 6 * squash, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2b1a10';
+      ctx.beginPath(); ctx.arc(x + 10, y - 4 * squash, 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#8d6748'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x - 18, y + 8); ctx.quadraticCurveTo(x - 34, y + 16, x - 24, y + 28); ctx.stroke();
+    }
+
+    if (shieldActive) { ctx.strokeStyle = 'rgba(155,229,100,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.stroke(); }
+    if (blessingActive) { ctx.strokeStyle = 'rgba(255,209,102,0.9)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, 34, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawBlessingOverlay() {
+    const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+    g.addColorStop(0, 'rgba(255,224,130,0.0)');
+    g.addColorStop(1, 'rgba(255,180,60,0.25)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawRunner() {
+    ctx.save();
+    if (shakeTime > 0) ctx.translate((Math.random() - 0.5) * 8 * shakeTime, (Math.random() - 0.5) * 8 * shakeTime);
+    drawRunnerBackground();
+    drawLanes();
+    obstacles.forEach(drawObstacle);
+    collectibles.forEach(drawCollectible);
+    drawPlayer();
+    drawParticles();
+    if (blessingActive) drawBlessingOverlay();
+    ctx.restore();
+  }
+
+  // ============================================================
+  // RHYTHM ENGINE (Level 3: Dhol Rhythm)
+  // ============================================================
+  const RHYTHM_CFG = { noteTravel: 1.1, hitWindowGood: 0.22, hitWindowPerfect: 0.09, failMisses: 12 };
+  let rhythm = null;
+
+  function buildBeatPattern() {
+    const pattern = [];
+    const lanesCycle = [1, 0, 1, 2];
+    let t = 2.0;
+    const interval = 0.55;
+    const totalBeats = 36;
+    for (let i = 0; i < totalBeats; i++) {
+      pattern.push({ time: t, lane: lanesCycle[i % lanesCycle.length] });
+      t += interval;
+    }
+    return pattern;
+  }
+
+  function startRhythm() {
+    ensureAudio();
+    const pattern = buildBeatPattern();
+    rhythm = {
+      pattern, nextIdx: 0, active: [], elapsed: 0, score: 0, combo: 0,
+      perfect: 0, good: 0, miss: 0, total: pattern.length,
+    };
+    particles = []; shakeTime = 0;
+    scene = SCENE.L3; phase = 'PLAYING';
+    showLevelChrome('l3');
+    updateRhythmHUD();
+  }
+
+  function rhythmMult() { return 1 + Math.min(2, Math.floor(rhythm.combo / 8) * 0.5); }
+
+  function hitLane(laneIdx) {
+    if (scene !== SCENE.L3 || phase !== 'PLAYING') return;
+    let bestI = -1, bestDiff = Infinity;
+    rhythm.active.forEach((n, i) => {
+      if (n.lane !== laneIdx) return;
+      const progress = (rhythm.elapsed - n.spawnTime) / RHYTHM_CFG.noteTravel;
+      const diff = Math.abs(progress - 1);
+      if (diff < bestDiff) { bestDiff = diff; bestI = i; }
+    });
+    if (bestI === -1) return;
+    if (bestDiff <= RHYTHM_CFG.hitWindowPerfect) {
+      rhythm.score += 50 * rhythmMult(); rhythm.perfect++; rhythm.combo++;
+      spawnBurst(lanesX[laneIdx], H * 0.75, '#ffd166'); sfxCollect();
+      rhythm.active.splice(bestI, 1);
+    } else if (bestDiff <= RHYTHM_CFG.hitWindowGood) {
+      rhythm.score += 20 * rhythmMult(); rhythm.good++; rhythm.combo++;
+      spawnBurst(lanesX[laneIdx], H * 0.75, '#ffffff'); sfxJump();
+      rhythm.active.splice(bestI, 1);
+    }
+    updateRhythmHUD();
+  }
+
+  function updateRhythm(dt) {
+    rhythm.elapsed += dt;
+
+    while (rhythm.nextIdx < rhythm.pattern.length &&
+           rhythm.pattern[rhythm.nextIdx].time - RHYTHM_CFG.noteTravel <= rhythm.elapsed) {
+      const b = rhythm.pattern[rhythm.nextIdx];
+      rhythm.active.push({ lane: b.lane, spawnTime: b.time - RHYTHM_CFG.noteTravel });
+      rhythm.nextIdx++;
+    }
+
+    for (let i = rhythm.active.length - 1; i >= 0; i--) {
+      const n = rhythm.active[i];
+      const progress = (rhythm.elapsed - n.spawnTime) / RHYTHM_CFG.noteTravel;
+      if (progress > 1 + RHYTHM_CFG.hitWindowGood + 0.15) {
+        rhythm.active.splice(i, 1);
+        rhythm.miss++; rhythm.combo = 0;
+        if (rhythm.miss >= RHYTHM_CFG.failMisses) { finishRhythm('FAIL'); return; }
+      }
+    }
+
+    if (rhythm.nextIdx >= rhythm.pattern.length && rhythm.active.length === 0) { finishRhythm('WIN'); return; }
+    updateRhythmHUD();
+  }
+
+  function finishRhythm(kind) {
+    phase = kind;
+    const accuracy = (rhythm.perfect + rhythm.good * 0.5) / rhythm.total;
+    let stars = 0;
+    if (kind === 'WIN') { stars = accuracy >= 0.75 ? 3 : accuracy >= 0.45 ? 2 : 1; sfxWin(); }
+    else { sfxHit(); }
+    saveLevelResult('l3', rhythm.score, stars);
+    showLevelResult(kind, {
+      levelId: 'l3',
+      title: kind === 'WIN' ? 'Dhol Rhythm Complete!' : 'Lost the Beat!',
+      message: kind === 'WIN' ? 'You kept perfect time with the procession drums.' : 'Too many missed beats — join the procession again!',
+      score: rhythm.score, stars,
+      nextLevelId: kind === 'WIN' ? 'l4' : null,
+    });
+  }
+
+  function updateRhythmHUD() {
+    document.getElementById('rhyScore').textContent = Math.floor(rhythm.score);
+    document.getElementById('rhyCombo').textContent = rhythm.combo;
+    const processed = rhythm.perfect + rhythm.good + rhythm.miss;
+    const acc = processed > 0 ? Math.round(((rhythm.perfect + rhythm.good * 0.5) / processed) * 100) : 100;
+    document.getElementById('rhyAcc').textContent = acc;
+  }
+
+  function drawProcessionSilhouette() {
+    ctx.fillStyle = 'rgba(60,20,15,0.55)';
+    for (let i = 0; i < 4; i++) {
+      const baseX = ((globalElapsed * 15 + i * 160) % (W + 200)) - 100;
+      const y = H * 0.63;
+      ctx.beginPath();
+      ctx.moveTo(baseX - 20, y + 14); ctx.lineTo(baseX + 20, y + 14); ctx.lineTo(baseX + 20, y - 6);
+      ctx.lineTo(baseX, y - 22); ctx.lineTo(baseX - 20, y - 6); ctx.closePath(); ctx.fill();
+    }
+  }
+
+  function drawRhythmScene() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#ff9d5c'); g.addColorStop(1, '#3d1f45');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    drawProcessionSilhouette();
+
+    const hitY = H * 0.75;
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 2; ctx.setLineDash([10, 10]);
+    lanesX.forEach((x) => { ctx.beginPath(); ctx.moveTo(x, H * 0.1); ctx.lineTo(x, H * 0.92); ctx.stroke(); });
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 3;
+    lanesX.forEach((x) => { ctx.beginPath(); ctx.arc(x, hitY, 22, 0, Math.PI * 2); ctx.stroke(); });
+    ctx.fillStyle = '#fff8ec'; ctx.font = '22px Segoe UI'; ctx.textAlign = 'center';
+    lanesX.forEach((x) => { ctx.fillText('🥁', x, hitY + 8); });
+
+    if (rhythm) {
+      rhythm.active.forEach((n) => {
+        const progress = (rhythm.elapsed - n.spawnTime) / RHYTHM_CFG.noteTravel;
+        const ny = H * 0.1 + Math.min(1.2, progress) * (hitY - H * 0.1);
+        ctx.fillStyle = '#ff9f43';
+        ctx.beginPath(); ctx.arc(lanesX[n.lane], ny, 14, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+
+    ctx.fillStyle = '#fff8ec'; ctx.font = '14px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('Tap ◀ 🥁 ▶ in time with the beat!', W / 2, H * 0.06);
+    ctx.textAlign = 'start';
+
+    drawParticles();
+  }
+
+  // ============================================================
+  // MEMORY ENGINE (Level 2: Rangoli Memory)
+  // ============================================================
+  let mem = null;
+  const MEM_SYMBOLS = ['🪔', '🌺', '🥁', '🍬', '🪷', '🎊', '🐚', '🌼'];
+
+  function layoutMemory() {
+    if (!mem) return;
+    const cols = 4, rows = 4;
+    const availW = W * 0.88, availH = H * 0.52;
+    const size = Math.min(availW / cols, availH / rows, 92);
+    mem.cardSize = size;
+    mem.x0 = (W - cols * size) / 2;
+    mem.y0 = H * 0.3;
+  }
+
+  function startMemory() {
+    ensureAudio();
+    let deck = MEM_SYMBOLS.concat(MEM_SYMBOLS);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+    }
+    mem = {
+      cards: deck.map((sym) => ({ symbol: sym, revealed: false, matched: false })),
+      firstIdx: -1, secondIdx: -1, lockTimer: 0, moves: 0, matches: 0, timeLeft: 45, score: 0,
+      cardSize: 0, x0: 0, y0: 0,
+    };
+    layoutMemory();
+    particles = [];
+    scene = SCENE.L2; phase = 'PLAYING';
+    showLevelChrome('l2');
+    updateMemoryHUD();
+  }
+
+  function handleMemoryTap(px, py) {
+    if (phase !== 'PLAYING' || !mem) return;
+    const cols = 4, rows = 4;
+    const size = mem.cardSize;
+    const col = Math.floor((px - mem.x0) / size);
+    const row = Math.floor((py - mem.y0) / size);
+    if (col < 0 || col >= cols || row < 0 || row >= rows) return;
+    flipCard(row * cols + col);
+  }
+
+  function flipCard(idx) {
+    if (phase !== 'PLAYING' || mem.lockTimer > 0) return;
+    const card = mem.cards[idx];
+    if (!card || card.revealed || card.matched) return;
+    card.revealed = true;
+    sfxJump();
+    if (mem.firstIdx === -1) {
+      mem.firstIdx = idx;
+    } else if (mem.secondIdx === -1 && idx !== mem.firstIdx) {
+      mem.secondIdx = idx;
+      mem.moves++;
+      if (mem.cards[mem.firstIdx].symbol === card.symbol) {
+        mem.cards[mem.firstIdx].matched = true;
+        card.matched = true;
+        mem.matches++;
+        sfxCollect();
+        mem.firstIdx = -1; mem.secondIdx = -1;
+        if (mem.matches === 8) { finishMemory('WIN'); return; }
+      } else {
+        mem.lockTimer = 0.7;
+      }
+    }
+    updateMemoryHUD();
+  }
+
+  function updateMemory(dt) {
+    mem.timeLeft -= dt;
+    if (mem.timeLeft <= 0) { mem.timeLeft = 0; finishMemory('FAIL'); return; }
+    if (mem.lockTimer > 0) {
+      mem.lockTimer -= dt;
+      if (mem.lockTimer <= 0) {
+        mem.cards[mem.firstIdx].revealed = false;
+        mem.cards[mem.secondIdx].revealed = false;
+        mem.firstIdx = -1; mem.secondIdx = -1;
+      }
+    }
+    updateMemoryHUD();
+  }
+
+  function finishMemory(kind) {
+    phase = kind;
+    let finalScore;
+    if (kind === 'WIN') {
+      finalScore = Math.max(0, mem.matches * 50 + Math.floor(mem.timeLeft) * 3 - Math.max(0, mem.moves - 8) * 5);
+      sfxWin();
+    } else {
+      finalScore = mem.matches * 50;
+      sfxHit();
+    }
+    mem.score = finalScore;
+    const stars = kind === 'WIN' ? (mem.moves <= 10 ? 3 : mem.moves <= 14 ? 2 : 1) : 0;
+    saveLevelResult('l2', finalScore, stars);
+    showLevelResult(kind, {
+      levelId: 'l2',
+      title: kind === 'WIN' ? 'Rangoli Complete!' : "Time's Up!",
+      message: kind === 'WIN' ? 'The rangoli is ready before the guests arrive.' : 'The rangoli was left half-finished — try again!',
+      score: finalScore, stars,
+      nextLevelId: kind === 'WIN' ? 'l3' : null,
+    });
+  }
+
+  function updateMemoryHUD() {
+    document.getElementById('memTime').textContent = Math.ceil(mem.timeLeft);
+    document.getElementById('memMoves').textContent = mem.moves;
+    document.getElementById('memMatches').textContent = mem.matches;
+  }
+
+  function roundRectPath(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function drawMemoryScene() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#ffd8a8'); g.addColorStop(1, '#8a4a2a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#fff8ec'; ctx.font = '16px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('Match the Rangoli Symbols!', W / 2, H * 0.18);
+    ctx.textAlign = 'start';
+
+    if (!mem) return;
+    const size = mem.cardSize;
+    mem.cards.forEach((card, i) => {
+      const row = Math.floor(i / 4), col = i % 4;
+      const cx = mem.x0 + col * size + size / 2;
+      const cy = mem.y0 + row * size + size / 2;
+      const pad = size * 0.08;
+      ctx.save();
+      if (card.matched) ctx.globalAlpha = 0.55;
+      ctx.fillStyle = (card.revealed || card.matched) ? '#fff3d6' : '#e8590c';
+      roundRectPath(cx - size / 2 + pad, cy - size / 2 + pad, size - 2 * pad, size - 2 * pad, 10);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,209,102,0.8)'; ctx.lineWidth = 2; ctx.stroke();
+      if (card.revealed || card.matched) {
+        ctx.font = (size * 0.5) + 'px Segoe UI';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#3a2210';
+        ctx.fillText(card.symbol, cx, cy + 2);
+        ctx.textBaseline = 'alphabetic';
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath(); ctx.arc(cx, cy, size * 0.18, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    });
+  }
+
+  // ============================================================
+  // MAIN LOOP
+  // ============================================================
+  let lastTime = performance.now();
+  function loop(now) {
+    let dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    globalElapsed += dt;
+    updateParticlesGlobal(dt);
+
+    if (scene === SCENE.L1 || scene === SCENE.L4) {
+      if (phase === 'PLAYING') updateRunner(dt);
+      drawRunner();
+    } else if (scene === SCENE.L2) {
+      if (phase === 'PLAYING') updateMemory(dt);
+      drawMemoryScene();
+    } else if (scene === SCENE.L3) {
+      if (phase === 'PLAYING') updateRhythm(dt);
+      drawRhythmScene();
+    } else {
+      ctx.fillStyle = '#2a1510';
+      ctx.fillRect(0, 0, W, H);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) lastTime = performance.now();
+  });
+
+  // ============================================================
+  // AMBIENT PETALS
+  // ============================================================
+  const PETAL_CFG = [
+    { left: 5, dur: 7, delay: 0 }, { left: 15, dur: 9, delay: 1.2 },
+    { left: 28, dur: 6, delay: 2.4 }, { left: 40, dur: 10, delay: 0.6 },
+    { left: 55, dur: 8, delay: 3 }, { left: 68, dur: 7.5, delay: 1.8 },
+    { left: 80, dur: 9.5, delay: 0.3 }, { left: 92, dur: 6.5, delay: 2.1 },
+  ];
+  function fillPetals(id) {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.innerHTML = PETAL_CFG.map((p) =>
+      '<span class="petal" style="left:' + p.left + '%;animation-duration:' + p.dur + 's;animation-delay:' + p.delay + 's;">🌼</span>'
+    ).join('');
+  }
+  ['petalsHub', 'petalsResult'].forEach(fillPetals);
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  resize();
+  refreshHub();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
